@@ -24,7 +24,13 @@ async function main() {
   const client = new MongoClient(uri);
   try {
     await client.connect();
-    await listDatabases(client);
+    // await listDatabases(client);
+    await createListing(client, {
+      name: 'Lovely Loft',
+      summary: 'A charming loft in paris',
+      bedrooms: 1,
+      bathrooms: 2,
+    });
   } catch (error) {
     console.log(`Error: ${error.message}`);
   } finally {
@@ -32,6 +38,17 @@ async function main() {
   }
 }
 main().catch(console.error);
+
+async function createListing(client, newListing) {
+  const result = await client
+    .db('sample_airbnb')
+    .collection('listingsAndReviews')
+    .insertOne(newListing);
+  console.log(
+    `New listing created with the following id: ${result.insertedId}`
+  );
+  `${result.insertedCounts} ${result.insertedIds}`;
+}
 
 async function listDatabases(client) {
   const databasesList = await client.db().admin().listDatabases();
