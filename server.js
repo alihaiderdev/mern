@@ -59,7 +59,7 @@
 // }
 
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 
 const app = express();
@@ -86,9 +86,20 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.post('/api/user', async (req, res) => {
+// app.post('/api/users', async (req, res) => {
+//   try {
+//     await create(client, 'techzone', 'users', req.body);
+//     console.log(req.body);
+//     res.status(201).json({ msg: 'Success', data: req.body });
+//   } catch (error) {
+//     console.log(`Error: ${error.message}`);
+//     res.status(404).json({ msg: error.message });
+//   }
+// });
+
+app.post('/api/users', async (req, res) => {
   try {
-    await create(client, 'techzone', 'users', req.body);
+    await client.db('techzone').collection('users').insertOne(req.body);
     console.log(req.body);
     res.status(201).json({ msg: 'Success', data: req.body });
   } catch (error) {
@@ -97,25 +108,87 @@ app.post('/api/user', async (req, res) => {
   }
 });
 
-// frontEnd Side you should implement this
-{
-  /* <button
-  onClick={() => signup({ firstName, lastName, email, password })}
-></button>;
-async function signup(user) {
-  // const res = await axios.post("http://localhost:8080/api/user")
+app.get('/api/users', async (req, res) => {
   try {
-    const res = await axios({
-      method: "post",
-      url: "http://localhost:8080/api/user",
-      data: { firstName, lastName, email, password },
-    });
-    console.log(res);
+    let data = await client.db('techzone').collection('users').find();
+    const users = await data.toArray();
+    res
+      .status(201)
+      .json({ msg: 'Success', data: { count: users.length, users } });
   } catch (error) {
     console.log(`Error: ${error.message}`);
+    res.status(404).json({ msg: error.message });
   }
-} */
-}
+});
+
+app.get('/api/users/:userId', async (req, res) => {
+  const id = req.params.userId;
+  try {
+    if (ObjectId.isValid(id)) {
+      let user = await client
+        .db('techzone')
+        .collection('users')
+        .findOne({ _id: ObjectId(id) });
+      res.status(201).json({ msg: 'Success', data: { user } });
+      // console.log(
+      //   ObjectId.isValid('microsoft123'),
+      //   ObjectId.isValid('timtomtamted'),
+      //   ObjectId.isValid('551137c2f9e1fac808a5f579')
+      // );
+    }
+  } catch (error) {
+    console.log(`Error: ${error.message}`);
+    res.status(404).json({ msg: error.message });
+  }
+});
+
+// upsert in mongodb: if document exist in collection then update and if its not then first create and then update it at a time
+app.patch('/api/users/:userId', async (req, res) => {
+  const id = req.params.userId;
+  try {
+    if (ObjectId.isValid(id)) {
+      const { firstName, lastName, email, password } = req.body;
+      await client
+        .db('techzone')
+        .collection('users')
+        .updateOne(
+          { _id: ObjectId(id) },
+          {
+            $set: req.body,
+          }
+        );
+      const updatedUser = await client
+        .db('techzone')
+        .collection('users')
+        .findOne({ _id: ObjectId(id) });
+      res.status(201).json({ msg: 'Success', data: { user: updatedUser } });
+    }
+  } catch (error) {
+    console.log(`Error: ${error.message}`);
+    res.status(404).json({ msg: error.message });
+  }
+});
+
+app.delete('/api/users/:userId', async (req, res) => {
+  const id = req.params.userId;
+  try {
+    if (ObjectId.isValid(id)) {
+      await client
+        .db('techzone')
+        .collection('users')
+        .deleteOne({ _id: ObjectId(id) });
+      res.status(201).json({
+        msg: 'Success',
+        data: {
+          delete: `Document with this id: '${id}' deleted successfully`,
+        },
+      });
+    }
+  } catch (error) {
+    console.log(`Error: ${error.message}`);
+    res.status(404).json({ msg: error.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
@@ -135,22 +208,4 @@ async function listDatabases(client) {
   databasesList.databases.forEach((db, i) => {
     console.log(`${i} - ${db.name}`);
   });
-}
-async function createListing(client, newListing) {
-  const result = await client
-    .db('sample_airbnb')
-    .collection('listingsAndReviews')
-    .insertOne(newListing);
-  console.log(
-    `New listing created with the following id: ${result.insertedId}`
-  );
-  `${result.insertedCounts} ${result.insertedIds}`;
-}
-async function createUser(client, user) {
-  const result = await client
-    .db('front-to-back')
-    .collection('users')
-    .insertOne(user);
-  console.log(`Created with the following id: ${result.insertedId}`);
-  `${result.insertedCounts} ${result.insertedIds}`;
 }

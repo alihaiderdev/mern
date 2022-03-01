@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Form, Container, Alert, Spinner } from 'react-bootstrap';
+import { Button, Form, Container, Spinner } from 'react-bootstrap';
 import './app.css';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -46,7 +46,7 @@ const App = () => {
         setIsLoading(true);
         const res = await axios({
           method: 'POST',
-          url: 'http://localhost:8080/api/user',
+          url: 'http://localhost:8080/api/users',
           data: { firstName, lastName, email, password },
         });
         sawal({
