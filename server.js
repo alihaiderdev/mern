@@ -29,10 +29,16 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
+async function checkUserExistOrNot(id) {
+  return await client
+    .db('techzone')
+    .collection('users')
+    .findOne({ _id: ObjectId(id) });
+}
+
 app.post('/api/users', async (req, res) => {
   try {
     await client.db('techzone').collection('users').insertOne(req.body);
-    console.log(req.body);
     res.status(201).json({ status: 'success', data: req.body });
   } catch (error) {
     console.log(`Error: ${error.message}`);
@@ -57,11 +63,7 @@ app.get('/api/users/:userId', async (req, res) => {
   const id = req.params.userId;
   try {
     if (ObjectId.isValid(id)) {
-      const user = await client
-        .db('techzone')
-        .collection('users')
-        .findOne({ _id: ObjectId(id) });
-      console.log(user);
+      const user = await checkUserExistOrNot(id);
       if (user !== null) {
         res.status(200).json({ status: 'success', data: { user } });
       } else {
@@ -82,10 +84,7 @@ app.patch('/api/users/:userId', async (req, res) => {
   const id = req.params.userId;
   try {
     if (ObjectId.isValid(id)) {
-      const user = await client
-        .db('techzone')
-        .collection('users')
-        .findOne({ _id: ObjectId(id) });
+      const user = await checkUserExistOrNot(id);
       if (user !== null) {
         await client
           .db('techzone')
@@ -96,10 +95,7 @@ app.patch('/api/users/:userId', async (req, res) => {
               $set: req.body,
             }
           );
-        const user = await client
-          .db('techzone')
-          .collection('users')
-          .findOne({ _id: ObjectId(id) });
+        const user = await checkUserExistOrNot(id);
         res.status(200).json({ status: 'success', data: { user } });
       } else {
         res.status(404).json({
@@ -118,10 +114,7 @@ app.delete('/api/users/:userId', async (req, res) => {
   const id = req.params.userId;
   try {
     if (ObjectId.isValid(id)) {
-      const user = await client
-        .db('techzone')
-        .collection('users')
-        .findOne({ _id: ObjectId(id) });
+      const user = await checkUserExistOrNot(id);
       if (user !== null) {
         await client
           .db('techzone')
