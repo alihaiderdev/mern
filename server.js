@@ -57,10 +57,11 @@ app.get('/api/users/:userId', async (req, res) => {
   const id = req.params.userId;
   try {
     if (ObjectId.isValid(id)) {
-      let user = await client
+      const user = await client
         .db('techzone')
         .collection('users')
         .findOne({ _id: ObjectId(id) });
+      console.log(user);
       if (user !== null) {
         res.status(200).json({ status: 'success', data: { user } });
       } else {
@@ -95,6 +96,10 @@ app.patch('/api/users/:userId', async (req, res) => {
               $set: req.body,
             }
           );
+        const user = await client
+          .db('techzone')
+          .collection('users')
+          .findOne({ _id: ObjectId(id) });
         res.status(200).json({ status: 'success', data: { user } });
       } else {
         res.status(404).json({
@@ -118,6 +123,10 @@ app.delete('/api/users/:userId', async (req, res) => {
         .collection('users')
         .findOne({ _id: ObjectId(id) });
       if (user !== null) {
+        await client
+          .db('techzone')
+          .collection('users')
+          .deleteOne({ _id: ObjectId(id) });
         res.status(200).json({
           status: 'success',
           data: {
