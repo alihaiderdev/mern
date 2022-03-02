@@ -42,6 +42,7 @@ app.post('/api/users', async (req, res) => {
     res.status(201).json({ status: 'success', data: req.body });
   } catch (error) {
     console.log(`Error: ${error.message}`);
+    res.setHeader('content-type', 'application/json');
     res.status(404).json({ status: 'error', error: error.message });
   }
 });

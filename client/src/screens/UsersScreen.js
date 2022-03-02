@@ -2,9 +2,14 @@ import { sawal } from '../utils';
 import { useEffect, useState } from 'react';
 import { Button, Card, Col, Row, Spinner } from 'react-bootstrap';
 import axios from 'axios';
-import CreateUserModel from '../components/CreateUserModel';
+import UserModel from '../components/UserModel';
+
+function getRandomNumberBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
 
 const UsersScreen = () => {
+  const [user, setUser] = useState({});
   const [users, setUsers] = useState([]);
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +42,7 @@ const UsersScreen = () => {
     // };
   }, []);
 
-  console.log(users);
+  // console.log(users);
 
   const closeModel = () => setShow(false);
   const openModel = () => setShow(true);
@@ -46,7 +51,7 @@ const UsersScreen = () => {
     setSignupForm({ ...signupForm, [e.target.name]: e.target.value });
   };
 
-  const signup = async (e) => {
+  async function signup(e) {
     e.preventDefault();
     try {
       if (
@@ -60,6 +65,9 @@ const UsersScreen = () => {
           method: 'POST',
           url: '/users',
           data: { firstName, lastName, email, password },
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
         setUsers([...users, data.data]);
         sawal({
@@ -87,9 +95,41 @@ const UsersScreen = () => {
       setIsLoadingSpinner(false);
       console.log(`Error: ${e.message}`);
     }
-  };
+  }
 
-  const removeUser = async (userId) => {
+  async function updateUser(userId) {
+    try {
+      setIsLoading(true);
+      const { data } = await axios({
+        method: 'PATCH',
+        url: `/users/${userId}`,
+        data: { firstName, lastName, email, password },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (data.status === 'success') {
+        sawal({
+          icon: `success`,
+          title: `Update`,
+          text: `User updated with this id: ${userId}`,
+        });
+      }
+      setUsers(data.data.users);
+      setIsLoading(false);
+      getUsers();
+    } catch (e) {
+      setIsLoading(false);
+      sawal({
+        icon: `error`,
+        title: `Error`,
+        text: e.message,
+      });
+      console.log(`Error: ${e.message}`);
+    }
+  }
+
+  async function removeUser(userId) {
     try {
       setIsLoading(true);
       const { data } = await axios.delete(`/users/${userId}`);
@@ -111,28 +151,19 @@ const UsersScreen = () => {
       });
       console.log(`Error: ${e.message}`);
     }
-  };
-
-  //   const updateUser = async (userId) => {
-  //     try {
-  //       setIsLoadingSpinner(true);
-  //       const { data } = await axios.patch(
-  //         `/users/${userId}`
-  //       );
-  //       setUsers(data.data.users);
-  //       setIsLoadingSpinner(false);
-  //       getUsers();
-  //     } catch (e) {
-  //       setIsLoadingSpinner(false);
-  //       console.log(`Error: ${e.message}`);
-  //     }
-  //   };
+  }
 
   return (
     <div className='usersScreen py-3 w-100 h-100'>
       <div className='d-flex align-items-center justify-content-between'>
         <h1>Users</h1>
-        <Button variant='primary' onClick={openModel}>
+        <Button
+          variant='primary'
+          onClick={() => {
+            openModel();
+            setUser({});
+          }}
+        >
           Create User
         </Button>
       </div>
@@ -155,7 +186,14 @@ const UsersScreen = () => {
                   className='mb-4'
                 >
                   <Card style={{ width: '100%' }}>
-                    <Card.Img variant='top' src='' />
+                    {/* <Card.Img
+                      variant='top'
+                      src={`https://picsum.photos/id/${getRandomNumberBetween(
+                        0,
+                        1000
+                      )}/200/150`}
+                      alt=''
+                    /> */}
                     <Card.Body>
                       <ul className='m-0 p-0' style={{ listStyle: 'none' }}>
                         <li>
@@ -179,15 +217,16 @@ const UsersScreen = () => {
                       </ul>
                     </Card.Body>
                     <Card.Footer className='d-flex justify-content-between'>
-                      {/* <Button
+                      <Button
                         size='sm'
                         variant='warning'
                         onClick={() => {
-                          updateUser(user._id);
+                          openModel();
+                          setUser(user);
                         }}
                       >
                         Update
-                      </Button> */}
+                      </Button>
                       <Button
                         size='sm'
                         variant='danger'
@@ -204,11 +243,14 @@ const UsersScreen = () => {
             })}
         </Row>
       )}
-      <CreateUserModel
+      <UserModel
+        user={user}
         show={show}
+        openModel={openModel}
         closeModel={closeModel}
         onChangeHandler={onChangeHandler}
         signup={signup}
+        updateUser={updateUser}
         isLoading={isLoading}
         signupForm={signupForm}
       />

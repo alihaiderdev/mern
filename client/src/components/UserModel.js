@@ -1,27 +1,31 @@
 import { Button, Form, Modal, Spinner } from 'react-bootstrap';
 
-const CreateUserModel = ({
+const UserModel = ({
+  user,
   show,
   closeModel,
   onChangeHandler,
   signup,
+  updateUser,
   isLoading,
   signupForm,
 }) => {
   const { firstName, lastName, email, password } = signupForm;
+  const userExist = Object.keys(user).length > 0;
+
   return (
     <Modal show={show} onHide={closeModel} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>User</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form onSubmit={signup}>
+      <Form onSubmit={userExist ? updateUser : signup}>
+        <Modal.Header closeButton>
+          <Modal.Title>{userExist ? `User ${user._id}` : 'User'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           <Form.Group className='mb-3' controlId='firstName'>
             <Form.Label>First Name</Form.Label>
             <Form.Control
               type='text'
               name='firstName'
-              value={firstName}
+              value={userExist ? user.firstName : firstName}
               onChange={onChangeHandler}
               placeholder='Enter your first name'
             />
@@ -32,7 +36,7 @@ const CreateUserModel = ({
             <Form.Control
               type='text'
               name='lastName'
-              value={lastName}
+              value={userExist ? user.lastName : lastName}
               onChange={onChangeHandler}
               placeholder='Enter your last name'
             />
@@ -43,7 +47,7 @@ const CreateUserModel = ({
             <Form.Control
               type='email'
               name='email'
-              value={email}
+              value={userExist ? user.email : email}
               onChange={onChangeHandler}
               placeholder='Enter your email'
             />
@@ -54,12 +58,17 @@ const CreateUserModel = ({
             <Form.Control
               type='password'
               name='password'
-              value={password}
+              value={userExist ? user.password : password}
               onChange={onChangeHandler}
               placeholder='Enter your password'
             />
           </Form.Group>
-          <Button variant='primary' type='submit'>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant={`${userExist ? 'warning' : 'primary'}`}
+            type='submit'
+          >
             {isLoading && (
               <>
                 <Spinner
@@ -73,17 +82,12 @@ const CreateUserModel = ({
                 <span className='visually-hidden'>Loading...</span>
               </>
             )}
-            Signup
+            {userExist ? 'Update' : 'Create'}
           </Button>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant='primary' onClick={closeModel}>
-          Save Changes
-        </Button>
-      </Modal.Footer>
+        </Modal.Footer>
+      </Form>
     </Modal>
   );
 };
 
-export default CreateUserModel;
+export default UserModel;
