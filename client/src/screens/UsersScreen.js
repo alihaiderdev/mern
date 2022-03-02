@@ -21,7 +21,7 @@ const UsersScreen = () => {
   const getUsers = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.get(`http://localhost:8080/api/users`);
+      const { data } = await axios.get(`/users`);
       setUsers(data.data.users);
       setIsLoading(false);
     } catch (e) {
@@ -58,7 +58,7 @@ const UsersScreen = () => {
         setIsLoadingSpinner(true);
         const { data } = await axios({
           method: 'POST',
-          url: 'http://localhost:8080/api/users',
+          url: '/users',
           data: { firstName, lastName, email, password },
         });
         setUsers([...users, data.data]);
@@ -92,9 +92,7 @@ const UsersScreen = () => {
   const removeUser = async (userId) => {
     try {
       setIsLoading(true);
-      const { data } = await axios.delete(
-        `http://localhost:8080/api/users/${userId}`
-      );
+      const { data } = await axios.delete(`/users/${userId}`);
       setIsLoading(false);
       if (data.status === 'success') {
         sawal({
@@ -119,7 +117,7 @@ const UsersScreen = () => {
   //     try {
   //       setIsLoadingSpinner(true);
   //       const { data } = await axios.patch(
-  //         `http://localhost:8080/api/users/${userId}`
+  //         `/users/${userId}`
   //       );
   //       setUsers(data.data.users);
   //       setIsLoadingSpinner(false);
